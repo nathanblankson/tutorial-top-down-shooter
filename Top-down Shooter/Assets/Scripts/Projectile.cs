@@ -9,6 +9,9 @@ public class Projectile : MonoBehaviour
     private float _speed = 10f;
     private float _damage = 1f;
 
+    private float _lifetime;
+    private float _skinWidth = .1f; // increase if enemy moving too fast
+
     public void SetSpeed(float speed)
     {
         _speed = speed;
@@ -17,6 +20,18 @@ public class Projectile : MonoBehaviour
     public void SetDamage(float damage)
     {
         _damage = damage;
+    }
+
+    private void Start()
+    {
+        Destroy(gameObject, _lifetime);
+
+        // Check for collisions - if instantiated inside object
+        Collider[] initialCollisions = Physics.OverlapSphere(transform.position, .1f, collisionMask);
+        if (initialCollisions.Length > 0)
+        {
+            OnHit(initialCollisions[0]);
+        }
     }
 
     private void Update()
@@ -31,7 +46,7 @@ public class Projectile : MonoBehaviour
         Ray ray = new Ray(transform.position, transform.forward);
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, distance, collisionMask, QueryTriggerInteraction.Collide))
+        if (Physics.Raycast(ray, out hit, distance + _skinWidth, collisionMask, QueryTriggerInteraction.Collide))
         {
             OnHit(hit);
         }
@@ -43,6 +58,16 @@ public class Projectile : MonoBehaviour
         if (damageable != null)
         {
             damageable.TakeHit(_damage, hit);
+        }
+        Destroy(gameObject);
+    }
+
+    private void OnHit(Collider other)
+    {
+        IDamageable damageable = other.GetComponent<IDamageable>();
+        if (damageable != null)
+        {
+            damageable.TakeDamage(_damage);
         }
         Destroy(gameObject);
     }
