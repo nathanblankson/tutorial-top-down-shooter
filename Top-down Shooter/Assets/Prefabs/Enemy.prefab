@@ -109,6 +109,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   startingHealth: 1
+  attackDistanceThreshold: 0.5
+  timeBetweenAttacks: 1
 --- !u!195 &3148595520218450099
 NavMeshAgent:
   m_ObjectHideFlags: 0
