@@ -10,8 +10,11 @@ public class MapEditor : Editor
     {
         base.OnInspectorGUI();
 
-        MapGenerator map = (MapGenerator) target;
-
-        map.GenerateMap();
+        // TODO: does not work outside editor e.g. when ctrl + z
+        if (GUI.changed)
+        {
+            MapGenerator map = (MapGenerator) target;
+            map.GenerateMap();
+        }
     }
 }
