@@ -6,13 +6,17 @@ public class MapGenerator : MonoBehaviour
 {
     public Transform tilePrefab;
     public Transform obstaclePrefab;
+    public Transform navMeshFloor;
+    public Transform navMeshMaskPrefab;
     public Vector2Int mapSize;
+    public Vector2Int maxMapSize;
     public int mapSeed = 10;
 
     [Range(0f, 1f)]
     public float obstaclePercent;
     [Range(0f, 1f)]
     public float outlinePercent;
+    public float tileSize = 1f;
 
     private List<Coord> _allTileCoords;
     private Queue<Coord> _shuffledTileCoords;
@@ -46,11 +50,9 @@ public class MapGenerator : MonoBehaviour
         Transform mapHolder = new GameObject(holderName).transform;
         mapHolder.parent = transform;
 
+        // Instantiate tiles
         Transform tileHolder = new GameObject("Tiles").transform;
         tileHolder.parent = mapHolder;
-
-        Transform obstacleHolder = new GameObject("Obstacles").transform;
-        obstacleHolder.parent = mapHolder;
 
         for (int x = 0; x < mapSize.x; x++)
         {
@@ -58,10 +60,14 @@ public class MapGenerator : MonoBehaviour
             {
                 Vector3 tilePosition = CoordToPosition(x, y);
                 Transform newTile = (Transform) Instantiate(tilePrefab, tilePosition, tilePrefab.rotation);
-                newTile.localScale = Vector3.one * (1 - outlinePercent);
+                newTile.localScale = Vector3.one * (1 - outlinePercent) * tileSize;
                 newTile.parent = tileHolder;
             }
         }
+
+        // Instantiate obstacles
+        Transform obstacleHolder = new GameObject("Obstacles").transform;
+        obstacleHolder.parent = mapHolder;
 
         bool[,] obstacleMap = new bool[(int) mapSize.x, (int) mapSize.y];
 
@@ -79,6 +85,7 @@ public class MapGenerator : MonoBehaviour
                 Vector3 obstaclePosition = CoordToPosition(randomCoord.x, randomCoord.y);
                 Vector3 offset = Vector3.up * .5f;
                 Transform newObstacle = Instantiate(obstaclePrefab, obstaclePosition + offset, obstaclePrefab.rotation);
+                newObstacle.localScale = Vector3.one * (1 - outlinePercent) * tileSize;
                 newObstacle.parent = obstacleHolder;
             }
             else
@@ -87,6 +94,33 @@ public class MapGenerator : MonoBehaviour
                 currentObstacleCount--;
             }
         }
+
+        // Instantiate borders
+        Transform maskHolder = new GameObject("Masks").transform;
+        maskHolder.parent = mapHolder;
+
+        Transform maskLeft = (Transform) Instantiate(navMeshMaskPrefab, Vector3.left * (mapSize.x + maxMapSize.x) / 4 * tileSize, Quaternion.identity);
+        maskLeft.gameObject.name = "Left";
+        maskLeft.parent = maskHolder;
+        maskLeft.localScale = new Vector3((maxMapSize.x - mapSize.x) / 2, 1f, mapSize.y) * tileSize;
+
+        Transform maskRight = (Transform) Instantiate(navMeshMaskPrefab, Vector3.right * (mapSize.x + maxMapSize.x) / 4 * tileSize, Quaternion.identity);
+        maskRight.gameObject.name = "Right";
+        maskRight.parent = maskHolder;
+        maskRight.localScale = new Vector3((maxMapSize.x - mapSize.x) / 2, 1f, mapSize.y) * tileSize;
+
+        Transform maskTop = (Transform) Instantiate(navMeshMaskPrefab, Vector3.forward * (mapSize.y + maxMapSize.y) / 4 * tileSize, Quaternion.identity);
+        maskTop.gameObject.name = "Top";
+        maskTop.parent = maskHolder;
+        maskTop.localScale = new Vector3(maxMapSize.x, 1f, (maxMapSize.y - mapSize.y) / 2) * tileSize;
+
+        Transform maskBottom = (Transform) Instantiate(navMeshMaskPrefab, Vector3.back * (mapSize.y + maxMapSize.y) / 4 * tileSize, Quaternion.identity);
+        maskBottom.gameObject.name = "Bottom";
+        maskBottom.parent = maskHolder;
+        maskBottom.localScale = new Vector3(maxMapSize.x, 1f, (maxMapSize.y - mapSize.y) / 2) * tileSize;
+
+        // Walkable floor
+        navMeshFloor.localScale = new Vector3(maxMapSize.x, maxMapSize.y, 1f) * tileSize;
     }
 
     private bool IsMapFullyAccessible(bool[,] obstacleMap, int currentObstacleCount)
@@ -140,7 +174,7 @@ public class MapGenerator : MonoBehaviour
     {
         float tileX = -mapSize.x/2 + .5f + x;
         float tileZ = -mapSize.y/2 + .5f + y;
-        return new Vector3(tileX, 0, tileZ);
+        return new Vector3(tileX, 0, tileZ) * tileSize;
     }
 
     private Coord GetRandomCoord()
