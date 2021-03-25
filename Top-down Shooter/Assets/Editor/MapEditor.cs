@@ -6,15 +6,24 @@ using UnityEditor;
 [CustomEditor(typeof(MapGenerator))]
 public class MapEditor : Editor
 {
-
     public override void OnInspectorGUI()
     {
-        base.OnInspectorGUI();
+        // Update on value in inspector changed
+        if (DrawDefaultInspector())
+        {
+            GenerateMap();
+        }
 
+        // Update using button
         if (GUILayout.Button("Generate Map"))
         {
-            MapGenerator map = (MapGenerator) target;
-            map.GenerateMap();
+            GenerateMap();
         }
+    }
+
+    private void GenerateMap()
+    {
+        MapGenerator map = (MapGenerator) target;
+        map.GenerateMap();
     }
 }
