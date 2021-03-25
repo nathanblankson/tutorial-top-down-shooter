@@ -7,7 +7,7 @@ public class GunController : MonoBehaviour
     public Transform weaponHold;
     public Gun startingGun;
 
-    Gun _equippedGun;
+    private Gun _equippedGun;
 
     private void Start()
     {

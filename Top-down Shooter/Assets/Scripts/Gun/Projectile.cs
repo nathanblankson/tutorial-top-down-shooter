@@ -9,7 +9,7 @@ public class Projectile : MonoBehaviour
     private float _speed = 10f;
     private float _damage = 1f;
 
-    private float _lifetime;
+    private float _lifetime = 5f;
     private float _skinWidth = .1f; // increase if enemy moving too fast
 
     public void SetSpeed(float speed)
