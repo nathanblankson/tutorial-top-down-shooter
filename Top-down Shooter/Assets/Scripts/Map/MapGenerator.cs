@@ -19,6 +19,8 @@ public class MapGenerator : MonoBehaviour
 
     private List<Coord> _allTileCoords;
     private Queue<Coord> _shuffledTileCoords;
+    private Queue<Coord> _shuffledOpenTileCoords;
+    private Transform[,] _tileMap;
 
     private Map _currentMap;
     private Color _randomForegroundColor;
@@ -32,6 +34,7 @@ public class MapGenerator : MonoBehaviour
     public void GenerateMap()
     {
         _currentMap = maps[mapIndex];
+        _tileMap = new Transform[_currentMap.mapSize.x, _currentMap.mapSize.y];
         System.Random prng = new System.Random(_currentMap.seed);
 
         // Set box collider (floor)
@@ -70,12 +73,14 @@ public class MapGenerator : MonoBehaviour
                 Transform newTile = (Transform) Instantiate(tilePrefab, tilePosition, tilePrefab.rotation);
                 newTile.localScale = Vector3.one * (1 - outlinePercent) * tileSize;
                 newTile.parent = tileHolder;
+                _tileMap[x, y] = newTile;
             }
         }
 
         // Instantiate obstacles
         Transform obstacleHolder = new GameObject("Obstacles").transform;
         obstacleHolder.parent = mapHolder;
+        List<Coord> allOpenCoords = new List<Coord> (_allTileCoords);
 
         bool[,] obstacleMap = new bool[(int) _currentMap.mapSize.x, (int) _currentMap.mapSize.y];
 
@@ -128,6 +133,8 @@ public class MapGenerator : MonoBehaviour
                 }
 
                 obstacleRenderer.sharedMaterial = obstacleMaterial;
+
+                allOpenCoords.Remove(randomCoord);
             }
             else
             {
@@ -135,6 +142,8 @@ public class MapGenerator : MonoBehaviour
                 currentObstacleCount--;
             }
         }
+
+        _shuffledOpenTileCoords = new Queue<Coord> (Utility.ShuffleArray(allOpenCoords.ToArray(), _currentMap.seed));
 
         // Instantiate borders
         Transform maskHolder = new GameObject("Masks").transform;
@@ -216,6 +225,25 @@ public class MapGenerator : MonoBehaviour
         float tileX = -_currentMap.mapSize.x / 2f + .5f + x;
         float tileZ = -_currentMap.mapSize.y / 2f + .5f + y;
         return new Vector3(tileX, 0, tileZ) * tileSize;
+    }
+
+    public Transform GetTileFromPosition(Vector3 position)
+    {
+        int x = Mathf.RoundToInt(position.x / tileSize + (_currentMap.mapSize.x - 1) / 2f);
+        int y = Mathf.RoundToInt(position.z / tileSize + (_currentMap.mapSize.y - 1) / 2f);
+
+        // Clamp to prevent tile off the map
+        x = Mathf.Clamp(x, 0, _tileMap.GetLength(0) - 1);
+        y = Mathf.Clamp(y, 0, _tileMap.GetLength(1) - 1);
+
+        return _tileMap[x, y];
+    }
+
+    public Transform GetRandomOpenTile()
+    {
+        Coord randomCoord =  _shuffledOpenTileCoords.Dequeue();
+        _shuffledOpenTileCoords.Enqueue(randomCoord);
+        return _tileMap[randomCoord.x, randomCoord.y];
     }
 
     private Coord GetRandomCoord()
