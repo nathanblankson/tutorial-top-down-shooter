@@ -26,8 +26,9 @@ public class MapGenerator : MonoBehaviour
     private Color _randomForegroundColor;
     private Color _randomBackgroundColor;
 
-    private void Start()
+    private void Awake()
     {
+        FindObjectOfType<Spawner>().OnNewWave += OnNewWave;
         GenerateMap();
     }
 
@@ -251,6 +252,12 @@ public class MapGenerator : MonoBehaviour
         Coord randomCoord =  _shuffledTileCoords.Dequeue();
         _shuffledTileCoords.Enqueue(randomCoord);
         return randomCoord;
+    }
+
+    private void OnNewWave(int waveNumber)
+    {
+        mapIndex = waveNumber - 1;
+        GenerateMap();
     }
 
 }

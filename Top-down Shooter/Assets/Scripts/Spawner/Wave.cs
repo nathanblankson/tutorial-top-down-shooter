@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Wave : MonoBehaviour
+[System.Serializable]
+public struct Wave
 {
     public int enemyCount;
     public float timeBetweenSpawns;
