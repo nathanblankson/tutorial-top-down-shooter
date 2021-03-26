@@ -31,6 +31,7 @@ public class LivingEntity : MonoBehaviour, IDamageable
         }
     }
 
+    [ContextMenu("Die")]
     protected void Die()
     {
         isDead = true;
